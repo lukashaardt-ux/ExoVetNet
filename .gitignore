@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Raw data (regenerated via scripts/, see README)
+data/fluxes_bls/
+data/fluxes_catalog/
+data/fluxes_catalogv2/
+data/candidate_fluxes_catalog/
+data/Previous Logs/
+
+# OS/editor
+.vscode/
+.DS_Store
