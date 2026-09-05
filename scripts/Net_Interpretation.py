@@ -282,6 +282,20 @@ if not PLANET_VIEW:
     plt.title("Mean Local Attribution for False Positives")
     plt.savefig(f"figures/mean_local_attr_false_positives{time.time()}.png", dpi=300)
 '''
+window = slice(70, 131)
+caught_focus = np.abs(local_attrs_caught[:, window]).mean(axis=1)
+missed_focus = np.abs(local_attrs_missed[:, window]).mean(axis=1)
+
+u, p = mannwhitneyu(caught_focus, missed_focus, alternative="greater")
+
+print(f"caught: n={len(caught_focus)}  median={np.median(caught_focus):.4f}")
+print(f"missed: n={len(missed_focus)}  median={np.median(missed_focus):.4f}")
+print(f"ratio of medians: {np.median(caught_focus)/np.median(missed_focus):.2f}x")
+print(f"Mann-Whitney p={p:.3e}   P(random caught > random missed)={u/(len(caught_focus)*len(missed_focus)):.3f}")
+c_caught = np.abs(local_attrs_caught[:, window].mean(axis=0)).mean() / np.abs(local_attrs_caught[:, window]).mean()
+c_missed = np.abs(local_attrs_missed[:, window].mean(axis=0)).mean() / np.abs(local_attrs_missed[:, window]).mean()
+print(f"coherence — caught: {c_caught:.3f}  missed: {c_missed:.3f}  ratio: {c_caught/c_missed:.2f}x")
+
 
 fig, axs = plt.subplots(2, figsize=(14,8), sharey=True)
 
@@ -303,25 +317,12 @@ axs[1].axvspan(70, 130, color='red', alpha=0.07)
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
 
-fig.suptitle("ExoVetNet's attention on planets it catches is 2.7x more consistent than on planets it misses", fontsize=14, y=0.98)
+fig.suptitle(f"ExoVetNet's attention on planets it catches is {c_caught/c_missed:.2f}x more consistent than on planets it misses", fontsize=14, y=0.98)
 
 plt.savefig("figures/missedvcaught.png")
 
 plt.show()
 
-window = slice(70, 131)
-caught_focus = np.abs(local_attrs_caught[:, window]).mean(axis=1)
-missed_focus = np.abs(local_attrs_missed[:, window]).mean(axis=1)
-
-u, p = mannwhitneyu(caught_focus, missed_focus, alternative="greater")
-
-print(f"caught: n={len(caught_focus)}  median={np.median(caught_focus):.4f}")
-print(f"missed: n={len(missed_focus)}  median={np.median(missed_focus):.4f}")
-print(f"ratio of medians: {np.median(caught_focus)/np.median(missed_focus):.2f}x")
-print(f"Mann-Whitney p={p:.3e}   P(random caught > random missed)={u/(len(caught_focus)*len(missed_focus)):.3f}")
-c_caught = np.abs(local_attrs_caught[:, window].mean(axis=0)).mean() / np.abs(local_attrs_caught[:, window]).mean()
-c_missed = np.abs(local_attrs_missed[:, window].mean(axis=0)).mean() / np.abs(local_attrs_missed[:, window]).mean()
-print(f"coherence — caught: {c_caught:.3f}  missed: {c_missed:.3f}  ratio: {c_caught/c_missed:.2f}x")
 '''
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
