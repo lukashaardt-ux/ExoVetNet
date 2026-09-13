@@ -12,3 +12,7 @@ data/Previous Logs/
 # OS/editor
 .vscode/
 .DS_Store
+
+# Windows Garbage
+Thumbs.db
+desktop.ini
