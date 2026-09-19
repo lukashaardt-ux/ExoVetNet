@@ -43,6 +43,11 @@ This project serves as a continuation of EclipseSieve, which determined the depe
 
 - **Research Question:** If catalog features are leaking information to the model, can a model accurately vet from the raw light-curve signal alone and produce an honest result? That is the essence behind ExoVetNet.
 ## Approach
+- **Input:** The pipeline receives two views of a folded light curve signal. Each exoplanet candidate is phase-folded on its ephemeris and then split into two views. First, a global view, which is made of the entire folded light curve. Second, a local view, which is zoomed in on the transit. 
+
+- **A dual-branch 1D-CNN.** Each branch of the CNN receives a type of view respectively. The data from both views is eventually merged and passed to a dense head that outputs a verdict a probability from 0 (false positive) to 1 (planet). The structure is not a novel one, and is based on the architecture from [Shallue & Vanderburg (2018)](https://iopscience.iop.org/article/10.3847/1538-3881/aa9e09).
+
+- **Why this structure.** This structure allows the model to view two entirely different stories of the light curve. The global view reveals features at the "macro" level, such as eclipsing binaries and differences in the out-of-transit (OOT) data. The local view examines transit morphology and shows discrepancies at the "micro" level around and at the transit. However, ExoVetNet's contribution should not be seen as the architecture but rather the audit.
 
 ## Data & preprocessing
 
