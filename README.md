@@ -1,4 +1,3 @@
-<!-- Banner -->
 <p align='center'>
     <img src='figures/ExoVetNetBanner.png' alt='ExoVetNet' width='100%'>
 </p>
@@ -41,15 +40,25 @@ This project serves as a continuation of EclipseSieve, which determined the depe
 
 - **EclipseSieve:** [EclipseSieve](https://github.com/lukashaardt-ux/EclipseSieve) is a machine learning pipeline that *vetted* signals based on the features of the light curve, as well as the physical features of the system. EclipseSieve reached an F1 of 0.890, but further examination revealed that the model was heavily reliant on features that originated from NASA's catalog, which in turn leak the label of the signal.
 
-- **Research Question:** If catalog features are leaking information to the model, can a model accurately vet from the raw light-curve signal alone and produce an honest result? That is the essence behind ExoVetNet.
+- **Research question:** If catalog features are leaking information to the model, can a model accurately vet from the raw light-curve signal alone and produce an honest result? That is the essence behind ExoVetNet.
 ## Approach
 - **Input:** The pipeline receives two views of a folded light curve signal. Each exoplanet candidate is phase-folded on its ephemeris and then split into two views. First, a global view, which is made of the entire folded light curve. Second, a local view, which is zoomed in on the transit. 
 
-- **A dual-branch 1D-CNN.** Each branch of the CNN receives a type of view respectively. The data from both views is eventually merged and passed to a dense head that outputs a verdict a probability from 0 (false positive) to 1 (planet). The structure is not a novel one, and is based on the architecture from [Shallue & Vanderburg (2018)](https://iopscience.iop.org/article/10.3847/1538-3881/aa9e09).
+- **A dual-branch 1D-CNN:** Each branch of the CNN receives a type of view respectively. The data from both views is eventually merged and passed to a dense head that outputs a verdict a probability from 0 (false positive) to 1 (planet). The structure is not a novel one, and is based on the architecture from [Shallue & Vanderburg (2018)](https://iopscience.iop.org/article/10.3847/1538-3881/aa9e09).
 
-- **Why this structure.** This structure allows the model to view two entirely different stories of the light curve. The global view reveals features at the "macro" level, such as eclipsing binaries and differences in the out-of-transit (OOT) data. The local view examines transit morphology and shows discrepancies at the "micro" level around and at the transit. However, ExoVetNet's contribution should not be seen as the architecture but rather the audit.
+- **Why this structure:** This structure allows the model to view two entirely different stories of the light curve. The global view reveals features at the "macro" level, such as eclipsing binaries and differences in the out-of-transit (OOT) data. The local view examines transit morphology and shows discrepancies at the "micro" level around and at the transit. However, ExoVetNet's contribution should not be seen as the architecture but rather the audit.
 
 ## Data & preprocessing
+
+- **Source & labels:** All datapoints came from the NASA Kepler cumulative KOI table and 7,586 KOIs were retrieved. CONFIRMED = 1, FALSE POSITIVE = 0. KOIs classified as candidates were dropped from the training set. Class balance: ~64% false positives / 36% planets.
+
+- **Creating views:** Each star had its light curves downloaded, NaNs removed, flattened, outliers removed, and were stitched together. Each KOI was folded on the catalog ephemeris and then binned into a global (2001 bins, full curve) and local view (201 bins, range is 3x duration).
+
+- **Binning & normalizing:** Bin length is created via `scipy.stats.binned_statistic` (median). Each view is median-subtracted and divided by |min|, so the transit depth maps itself to -1.
+
+- **Empty bins:** Empty bins are filled by linear interpolation over the points around the specific bin (previously zero-fill was used and will be discussed in the *Failure Analysis* section).
+
+- **Note:** By dividing each view by its own minimum, the absolute transit depth is functionally erased. The model is only examining the shape of the light curve and not the depth. 
 
 ## Model & training
 
